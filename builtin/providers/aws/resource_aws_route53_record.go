@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/davecgh/go-spew/spew"
 )
 
 var r53NoRecordsFound = errors.New("No matching Hosted Zone found")
@@ -373,16 +374,16 @@ func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("[DEBUG] Error setting records for: %s, error: %#v", d.Id(), err)
 	}
 
+
 	if alias := record.AliasTarget; alias != nil {
-		if _, ok := d.GetOk("alias"); !ok {
-			d.Set("alias", []interface{}{
-				map[string]interface{}{
-					"zone_id": *alias.HostedZoneId,
-					"name":    *alias.DNSName,
-					"evaluate_target_health": *alias.EvaluateTargetHealth,
-				},
-			})
-		}
+		log.Printf("[ALIAS] %s", spew.Sdump(record.AliasTarget))
+		d.Set("alias", []interface{}{
+			map[string]interface{}{
+				"zone_id": *alias.HostedZoneId,
+				"name":    *alias.DNSName,
+				"evaluate_target_health": *alias.EvaluateTargetHealth,
+			},
+		})
 	}
 
 	d.Set("ttl", record.TTL)
